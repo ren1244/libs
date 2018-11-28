@@ -1,8 +1,10 @@
 /*
-此函式庫由下列四個函式組成：
+此函式庫由下列函式組成：
 	String.prototype.toUTF8Array
+	String.prototype.toHexArray
 	String.prototype.decodeBase64
 	Uint8Array.prototype.toUTF8String
+	Uint8Array.prototype.toHexString
 	Uint8Array.prototype.encodeBase64
 使用方法：
 	字串轉base64
@@ -10,6 +12,8 @@
 
 	base64轉字串
 	[unicode字串] <==toUTF8String()== [Uint8Array] <==decodeBase64()== [Base64字串]
+	
+	hex字串同上，只是函式名稱稍微改變
 範例：
 	str1="測試字串abc";
 	base64_str=str.toUTF8Array().encodeBase64(); //以utf8編碼產生base64
@@ -176,4 +180,19 @@ Uint8Array.prototype.encodeBase64=function()
 	else if(i%3==2)
 		b64str+=tb[k<<2]+"=";
 	return b64str;
+}
+Uint8Array.prototype.toHexString=function()
+{
+	var arr=[];
+	for(let i=0;i<this.length;++i)
+		arr.push(("00"+this[i].toString(16)).slice(-2));
+	return arr.join('');
+}
+String.prototype.toHexArray=function()
+{
+	var n=(this.length>>>1);
+	var arr=new Uint8Array(n);
+	for(let i=0;i<n;++i)
+		arr[i]=parseInt(this.slice(i<<1,(i<<1)+2),16);
+	return arr;
 }
