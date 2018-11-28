@@ -1,25 +1,34 @@
-/*實作 sha 256 sha384 sha512
+/*實作 sha2 family
 
 使用方式：
 	sha2(type,u8arr)
 參數：
-	type:256或512
+	type:'224', '256', '384', '512', '512/225', '512/256'
 	u8arr:一個Uint8Array物件
 回傳：
 	Uint8Array物件
 	或是 flase ... 當 type 參數錯誤時
 */
+require("./utf8b64.js");
 var sha2=(function(){
 	//const initial
 	var h_512='agnmZ/O8yQi7Z66FhMqnOzxu83L+lPgrpU/1Ol8dNvFRDlJ/reaC0ZsFaIwrPmwfH4PZq/tBvWtb4M0ZE34heQ==';
 	var k_512='QoovmNcoriJxN0SRI+9lzbXA+8/sTTsv6bXbpYGJ27w5VsJb80i1OFnxEfG2BdAZkj+CpK8ZT5urHF7V2m2BGNgHqpijAwJCEoNbAUVwb74kMYW+TuSyjFUMfcPV/7Ticr5ddPJ7iW+A3rH+OxaWsZvcBqclxxI1wZvxdM9pJpTkm2nBnvFK0u++R4Y4TyXjD8GdxouM1bUkDKHMd6ycZS3pLG9ZKwJ1SnSEqm6m5INcsKncvUH71Hb5iNqDEVO1mD5RUu5m36uoMcZtLbQyELADJ8iY+yE/v1l/x77vDuTG4AvzPaiPwtWnkUeTCqclBspjUeADgm8UKSlnCg5ucCe3CoVG0i/8LhshOFwmySZNLG38WsQq7VM4DROdlbPfZQpzVIuvY952agq7PHeyqIHCyS5H7a7mknIshRSCNTuiv+ihTPEDZKgaZku8QjABwkuLcND4l5HHbFGjBlS+MNGS6BnW71IY1pkGJFVlqRD0DjWFV3EgKhBqoHAyu9G4GaTBFrjS0MgeN2wIUUGrUydId0zfjuuZNLC8teGbSKg5HAyzxclaY07YqkrjQYrLW5zKT3dj43NoLm/z1rK4o3SPgu5d77L8eKVjb0MXL2CEyHgUofCrcozHAggaZDnskL7/+iNjHiikUGzr3oK96b75o/eyxnkVxnF48uNyUyvKJz7O6iZhnNGGuMchwMIH6tp91s3g6x71fU9/7m7ReAbwZ6pyF2+6CmN9xaLImKYRP5gEvvkNrhtxCzUTHEcbKNt39SMEfYQyyqt7QMckkzyevgoVyb68Qx1nxJwQDUxMxdS+yz5Ctll/KZz8ZX4qX8tvqzrW+uxsRBmMSkdYFw==';
 	var h_256='agnmZ7tnroU8bvNypU/1OlEOUn+bBWiMH4PZq1vgzRk=';
 	var k_256='QoovmHE3RJG1wPvP6bXbpTlWwltZ8RHxkj+CpKscXtXYB6qYEoNbASQxhb5VDH3Dcr5ddIDesf6b3AanwZvxdOSbacHvvkeGD8GdxiQMocwt6SxvSnSEqlywqdx2+YjamD5RUqgxxm2wAyfIv1l/x8bgC/PVp5FHBspjURQpKWcntwqFLhshOE0sbfxTOA0TZQpzVHZqCruBwskuknIshaK/6KGoGmZLwkuLcMdsUaPRkugZ1pkGJPQONYUQaqBwGaTBFh43bAgnSHdMNLC8tTkcDLNO2KpKW5zKT2gub/N0j4LueKVjb4TIeBSMxwIIkL7/+qRQbOu++aP3xnF48g==';
+	var h_384='y7udXcEFnthimikqNnzVB5FZAVowcN0XFS/s2PcOWTlnMyZn/8ALMY60SodoWBUR2wwuDWT5j6dHtUgdvvpPpA==';
+	var h_512_224='jD03yBlUTaJz4ZlmidzU1h36t64y/5yCZ53VFFgvn88PbStpe9RNqHfjb3MExIlCP52FqGodNsgREuatkdaSoQ==';
+	var h_512_256='IjEhlPwr9yyfVV+jyExkwiOTuGtvU7FRljh3GVlA6r2WKD7iqI7/475eHiVThjmSKwGZ/CyFuKoOty3cgcUsog==';
+	var h_224='wQWe2DZ81QcwcN0X9w5ZOf/ACzFoWBURZPmPp776T6Q=';
 	
 	h_512=h_512.decodeBase64();
 	k_512=k_512.decodeBase64();
 	h_256=h_256.decodeBase64();
 	k_256=k_256.decodeBase64();
+	h_384=h_384.decodeBase64();
+	h_224=h_224.decodeBase64();
+	h_512_224=h_512_224.decodeBase64();
+	h_512_256=h_512_256.decodeBase64();
 	
 	//定義 word 的運算
 	//R,A,B 都是 DataView物件 ,分別以 z,x,y為offest
@@ -143,6 +152,14 @@ var sha2=(function(){
 	}
 	
 	var config={
+		'224':{
+			'wordSize':4,
+			'wordSizePow':2,
+			'H0':h_224,
+			'K':k_256,
+			'op':word32OP,
+			'outputLen':28
+		},
 		'256':{
 			'wordSize':4,
 			'wordSizePow':2,
@@ -156,6 +173,30 @@ var sha2=(function(){
 			'H0':h_512,
 			'K':k_512,
 			'op':word64OP
+		},
+		'384':{
+			'wordSize':8,
+			'wordSizePow':3,
+			'H0':h_384,
+			'K':k_512,
+			'op':word64OP,
+			'outputLen':48
+		},
+		'512/224':{
+			'wordSize':8,
+			'wordSizePow':3,
+			'H0':h_512_224,
+			'K':k_512,
+			'op':word64OP,
+			'outputLen':28
+		},
+		'512/256':{
+			'wordSize':8,
+			'wordSizePow':3,
+			'H0':h_512_256,
+			'K':k_512,
+			'op':word64OP,
+			'outputLen':32
 		}
 	};
 	
@@ -259,6 +300,8 @@ var sha2=(function(){
 			for(let j=0;j<8;++j)
 				op.w_add(dvH,j,dvH,j,dvT,j)
 		}
+		if(config[type].outputLen)
+			return u8H.slice(0,config[type].outputLen);
 		return u8H;
 		
 		function sum1(R,A){
@@ -267,3 +310,17 @@ var sha2=(function(){
 		}
 	}
 })();
+/*
+//產生 h_xxx 的base64
+(function Hex2Base64(){
+	var data="c1059ed8367cd5073070dd17f70e5939ffc00b316858151164f98fa7befa4fa4";
+	var n=(data.length>>1);
+	var arr=new Uint8Array(n);
+	for(let i=0;i<n;++i){
+		arr[i]=parseInt(data.slice(i*2,i*2+2),16);
+	}
+	console.log(arr.encodeBase64());
+})();
+*/
+
+
