@@ -1,15 +1,24 @@
 /*實作 sha2 family
 
 使用方式：
-	sha2(type,u8arr)
+-----------------------------------
+sha2(type,data)
 參數：
-	type:'224', '256', '384', '512', '512/225', '512/256'
-	u8arr:一個Uint8Array物件
+	type:字串，'224', '256', '384', '512', '512/225', '512/256'
+	data:Uint8Array，要被做雜湊的資料
 回傳：
-	Uint8Array物件
+	Uint8Array，雜湊的結果
+	或是 flase ... 當 type 參數錯誤時
+-----------------------------------	
+hmac_sha2(type,data,key)
+參數：
+	type:字串，'224', '256', '384', '512', '512/225', '512/256'
+	data:Uint8Array，要被做雜湊的資料
+	key:Uint8Array，Key
+回傳：
+	Uint8Array，雜湊的結果
 	或是 flase ... 當 type 參數錯誤時
 */
-require("./utf8b64.js");
 var sha2=(function(){
 	//const initial
 	var h_512='agnmZ/O8yQi7Z66FhMqnOzxu83L+lPgrpU/1Ol8dNvFRDlJ/reaC0ZsFaIwrPmwfH4PZq/tBvWtb4M0ZE34heQ==';
@@ -310,6 +319,42 @@ var sha2=(function(){
 		}
 	}
 })();
+
+function hmac_sha2(type,data,key)
+{
+	var config={
+		'224':[64,28], //[blockSize, outputSize]
+		'256':[64,32],
+		'384':[128,48],
+		'512':[128,64],
+		'512/224':[128,28],
+		'512/256':[128,32]
+	};
+	if(!config[type])
+		return false;
+	var blockSize=config[type][0],
+	    outputSize=config[type][1];
+	if(key.length>blockSize){
+		key=sha2(type,key);
+	}
+	if(key.length<blockSize){
+		let t=new Uint8Array(blockSize);
+		t.set(key);
+		key=t;
+	}
+	var o_key_pad=new Uint8Array(blockSize+outputSize);
+	o_key_pad.set(key);
+	var i_key_pad=new Uint8Array(blockSize+data.length);
+	i_key_pad.set(key);
+	for(let i=0;i<blockSize;++i){
+		o_key_pad[i]^=0x5C;
+		i_key_pad[i]^=0x36;
+	}
+	i_key_pad.set(data,blockSize);
+	var t=sha2(type,i_key_pad);
+	o_key_pad.set(t,blockSize);
+	return sha2(type,o_key_pad);
+}
 /*
 //產生 h_xxx 的base64
 (function Hex2Base64(){
