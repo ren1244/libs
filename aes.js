@@ -1,4 +1,19 @@
-//需要 utf8b64.js
+//require('./utf8b64.js');
+/*
+實作 AES 128 192 256 
+這只是底層運算，需要配合塊鏈結模式使用
+
+範例
+	var key=[48 byte (192 bit) 的 uint8array]
+	var plain=[16 byte (128 bit) 的 uint8array]
+	var aes192=new AES(key); //key的長度會決定採用哪種加密
+	var chiper=plain.slice(); //複製
+	aes192.chiper(chiper,0); //加密，這會直接修改 chiper 的內容
+	aes192.invChiper(chiper,0); //解密，這會直接修改 chiper 的內容
+說明
+	AES.chiper 跟 AES.invChiper 主要是配合配合塊鏈結模式使用
+	第二個參數是 offest 單位是 byte (注意不是block)
+*/
 function AES(key)
 {
 	this.keyInfo=this.getRoundKeys(key);
@@ -149,65 +164,3 @@ AES.prototype.invChiper=function (block,offset)
 	}
 	this.addRoundKey(block,offset,rks,0);
 }
-
-/*
-
-function prt2(block,offset)
-{
-	return ("000"+(block[offset+0]<<8|block[offset+1]).toString(16)).substr(-4)
-		+("000"+(block[offset+2]<<8|block[offset+3]).toString(16)).substr(-4)+"\n"
-		+("000"+(block[offset+4]<<8|block[offset+5]).toString(16)).substr(-4)
-		+("000"+(block[offset+6]<<8|block[offset+7]).toString(16)).substr(-4)+"\n"
-		+("000"+(block[offset+8]<<8|block[offset+9]).toString(16)).substr(-4)
-		+("000"+(block[offset+10]<<8|block[offset+11]).toString(16)).substr(-4)+"\n"
-		+("000"+(block[offset+12]<<8|block[offset+13]).toString(16)).substr(-4)
-		+("000"+(block[offset+14]<<8|block[offset+15]).toString(16)).substr(-4)+"\n";
-}
-function prt(block,offset)
-{
-	return ("000"+(block[offset+0]<<8|block[offset+4]).toString(16)).substr(-4)
-		+("000"+(block[offset+8]<<8|block[offset+12]).toString(16)).substr(-4)+"\n"
-		+("000"+(block[offset+1]<<8|block[offset+5]).toString(16)).substr(-4)
-		+("000"+(block[offset+9]<<8|block[offset+13]).toString(16)).substr(-4)+"\n"
-		+("000"+(block[offset+2]<<8|block[offset+6]).toString(16)).substr(-4)
-		+("000"+(block[offset+10]<<8|block[offset+14]).toString(16)).substr(-4)+"\n"
-		+("000"+(block[offset+3]<<8|block[offset+7]).toString(16)).substr(-4)
-		+("000"+(block[offset+11]<<8|block[offset+15]).toString(16)).substr(-4)+"\n";
-}
-
-var inp=new Uint8Array([0x32,0x43,0xf6,0xa8,0x88,0x5a,0x30,0x8d,0x31,0x31,0x98,0xa2,0xe0,0x37,0x07,0x34]);
-var k128=new Uint8Array([0x2b,0x7e,0x15,0x16,0x28,0xae,0xd2,0xa6,0xab,0xf7,0x15,0x88,0x09,0xcf,0x4f,0x3c]);
-var str="";
-var enc=new AES(k128);
-str+=prt(inp,0)+"\n";
-
-
-enc.chiper(inp,0);
-str+=prt(inp,0)+"\n";
-enc.invChiper(inp,0);
-str+=prt(inp,0)+"\n";
-
-
-
-document.getElementById("out").innerHTML=str;
-
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

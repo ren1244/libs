@@ -1,4 +1,13 @@
-//需要 aes.js
+//require('./aes.js')
+/*
+加密：
+	chiper=plain.aes_cbc_zero_enc(key);
+	plain=chiper.aes_cbc_zero_dec(key);
+	
+	其中 plain 跟 chiper 作為輸入時，可以為任意長度的 Uint8Array
+	key 為 特定長度的 Uint8Array，長度決定 AES 模式
+	(key length=32、48、64 分別是 AES 128、192、256)
+*/
 Uint8Array.prototype.aes_cbc_zero_enc=function(key)
 {
 	var aes=new AES(key);
