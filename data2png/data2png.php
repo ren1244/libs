@@ -19,7 +19,6 @@ for($i=0;$i<$nBlocks;++$i)
     echo $outFileName.PHP_EOL;
     $len=($i+1<$nBlocks?$blockSize:$totalSize-$i*$blockSize);
     $segment=substr($data, $i*$blockSize, $len);
-    file_put_contents("org_".$outFileName,$segment);
     if($len%3==1){
         $segment=$segment.'  ';
     } elseif ($len%3==2){
@@ -36,11 +35,4 @@ for($i=0;$i<$nBlocks;++$i)
     }
     imagepng($img,$outFileName,9);
     imagedestroy($img);
-}
-
-$arr=[];
-for($i=0;$i<$nBlocks;++$i)
-{
-    $outFileName=$prefix.sprintf("%02d",$i).".png";
-    $arr[]=file_get_contents($outFileName);
 }
