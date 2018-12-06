@@ -20,18 +20,19 @@
 	str2=base64_str.decodeBase64().toUTF8String(); //還原為原字串
 注意：
 	這邊的base64字串定義為[A-Z][a-z][0-9]+/組成，並以=填充
-	對於unicode超過0xFFFF的字元，utf8編碼是錯誤的(沒有考慮UTF-16，而以USC-2處理)，因此：
-		1. Uint8Array中的數值不是正確的utf-8編碼
-		2. 若編碼成base64只是作為資料傳輸，仍然可以正確還原回原字串
 */
 String.prototype.toUTF8Array=function()
 {
-	var i,N,k,sz;
+	var i,N,k,k2,sz;
 	//計算空間
 	sz=0;
-	for(i=this.length-1;i>=0;--i)
+	for(i=sz=0,N=this.length;i<N;++i)
 	{
 		k=this.charCodeAt(i);
+		if(k>=0xD800 && k<=0xDFFF){ //代理對
+			k2=this.charCodeAt(++i);
+			k=(k-0xD800<<10|k2-0xDC00)+0x10000;
+		}
 		sz+=k<0x800?(k<0x80?1:2):(k<0x10000?3:4);
 	}
 	//建立array
@@ -41,6 +42,10 @@ String.prototype.toUTF8Array=function()
 	for(i=sz=0,N=this.length;i<N;++i)
 	{
 		k=this.charCodeAt(i);
+		if(k>=0xD800 && k<=0xDFFF){ //代理對
+			k2=this.charCodeAt(++i);
+			k=(k-0xD800<<10|k2-0xDC00)+0x10000;
+		}
 		if(k<0x800)
 		{
 			if(k<0x80)
@@ -146,7 +151,13 @@ Uint8Array.prototype.toUTF8String=function()
 				return false;
 			c=c<<6|t&0x3F;
 		}
-		str+=String.fromCharCode(c);
+		if(c>=0x10000){
+			c-=0x10000;
+			str+=String.fromCharCode(0xD800+(c>>>10))
+			    +String.fromCharCode(0xDC00+(c&0x3FF));
+		} else {
+			str+=String.fromCharCode(c);
+		}
 	}
 	return str;
 }
