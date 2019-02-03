@@ -46,7 +46,7 @@ Uint8Array物件轉字串：
 
 hmac
 
-	Uint8Array.hmac(雜湊類別,key);
+	Uint8Array.hmac_sha2(雜湊類別,key);
 
 key 可以是 Uint8Array 或是字串 ( 自動以utf8編碼轉為 key )
 
