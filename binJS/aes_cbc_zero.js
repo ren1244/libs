@@ -8,38 +8,77 @@
 	key 為 特定長度的 Uint8Array，長度決定 AES 模式
 	(key length=32、48、64 分別是 AES 128、192、256)
 */
-Uint8Array.prototype.aes_cbc_zero_enc=function(key)
-{
-	var aes=new AES(key);
-	var sz=((this.length+15+16)/16|0);
-	var arr=new Uint8Array(sz*16);
-	var i,j,t;
+
+
+binJS.random_iv=function(){
+	var i,arr=new Uint8Array(16);
 	for(i=0;i<16;++i)
 		arr[i]=(Math.random()*256|0);
-	arr.set(this,16);
-	for(i=1;i<sz;++i)
-	{
+	return arr;
+}
+
+binJS.pad={};
+
+binJS.pad.zero={}
+
+binJS.pad.zero.enc=function(u8arr){
+	var newArr=new Uint8Array(((u8arr.length+15)/16|0)*16);
+	newArr.set(u8arr);
+	return newArr;
+}
+
+binJS.pad.zero.dec=function(u8arr){
+	return u8arr; //zero padding 無法判斷檔案長度
+}
+
+binJS.pad.pkcs7={}
+
+binJS.pad.pkcs7.enc=function(u8arr){
+	var newArr=new Uint8Array(((u8arr.length+16)/16|0)*16);
+	newArr.set(u8arr);
+	newArr.fill(newArr.length-u8arr.length,u8arr.length);
+	return newArr;
+}
+binJS.pad.pkcs7.dec=function(u8arr){
+	var x=u8arr[u8arr.length-1];
+	return u8arr.slice(0,u8arr.length-x);
+}
+
+binJS.aes_cbc_enc=function(u8arr,key,iv,padFunc)
+{
+	if(!padFunc){
+		padFunc=binJS.pad.pkcs7;
+	}
+	var aes=new AES(key);
+	var arr=padFunc.enc(u8arr);
+	var i,j,sz=arr.length/16;
+	for(j=0;j<16;++j)
+		arr[j]^=iv[j];
+	aes.chiper(arr,0);
+	for(i=1;i<sz;++i){
 		for(j=0;j<16;++j)
 			arr[i*16+j]^=arr[(i-1)*16+j];
 		aes.chiper(arr,i*16);
 	}
 	return arr;
 }
-Uint8Array.prototype.aes_cbc_zero_dec=function(key)
+
+binJS.aes_cbc_dec=function(u8arr,key,iv,padFunc)
 {
+	if(!padFunc){
+		padFunc=binJS.pad.pkcs7;
+	}
 	var aes=new AES(key);
-	var arr=this.subarray(16);
-	var sz=(arr.length/16|0);
+	var arr=u8arr.slice();
 	var i,j;
-	for(i=sz-1;i>0;--i)
+	for(i=arr.length-16;i>0;i-=16)
 	{
-		console.log('decode block:'+i);
-		aes.invChiper(arr,i*16);
+		aes.invChiper(arr,i);
 		for(j=0;j<16;++j)
-			arr[i*16+j]^=arr[(i-1)*16+j];
+			arr[i+j]^=arr[i-16+j];
 	}
 	aes.invChiper(arr,0);
 	for(j=0;j<16;++j)
-		arr[j]^=this[j];
-	return arr;
+		arr[j]^=iv[j];
+	return padFunc.dec(arr);
 }

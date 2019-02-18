@@ -67,18 +67,21 @@ key 可以是 Uint8Array 或是字串 ( 自動以utf8編碼轉為 key )
 
 加密
 
-	Uint8Array.cipher(加密方法,key);
+	Uint8Array.cipher(加密方法,key,iv);
 
 解密
 
-	Uint8Array.decipher(加密方法,key);
+	Uint8Array.decipher(加密方法,key,iv);
 
 加密方法有：
 
 * 'aes_cbc_zero'
+* 'aes_cbc_pkcs7'
 
 key 必須是特定大小的 Uint8Array，其長度會決定採用 AES 的加密方法
 
-* 長度 32 是 AES 128
-* 長度 48 是 AES 192
-* 長度 64 是 AES 256
+* 長度 16 是 AES 128
+* 長度 24 是 AES 192
+* 長度 32 是 AES 256
+
+iv 為 16 byte 的 Uint8Array

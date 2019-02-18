@@ -30,14 +30,14 @@ var sha2=(function(){
 	var h_512_256='IjEhlPwr9yyfVV+jyExkwiOTuGtvU7FRljh3GVlA6r2WKD7iqI7/475eHiVThjmSKwGZ/CyFuKoOty3cgcUsog==';
 	var h_224='wQWe2DZ81QcwcN0X9w5ZOf/ACzFoWBURZPmPp776T6Q=';
 	
-	h_512=h_512.decodeBase64();
-	k_512=k_512.decodeBase64();
-	h_256=h_256.decodeBase64();
-	k_256=k_256.decodeBase64();
-	h_384=h_384.decodeBase64();
-	h_224=h_224.decodeBase64();
-	h_512_224=h_512_224.decodeBase64();
-	h_512_256=h_512_256.decodeBase64();
+	h_512=binJS.s2a_base64(h_512);
+	k_512=binJS.s2a_base64(k_512);
+	h_256=binJS.s2a_base64(h_256);
+	k_256=binJS.s2a_base64(k_256);
+	h_384=binJS.s2a_base64(h_384);
+	h_224=binJS.s2a_base64(h_224);
+	h_512_224=binJS.s2a_base64(h_512_224);
+	h_512_256=binJS.s2a_base64(h_512_256);
 	
 	//定義 word 的運算
 	//R,A,B 都是 DataView物件 ,分別以 z,x,y為offest

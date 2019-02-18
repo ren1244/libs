@@ -8,20 +8,20 @@ String.prototype.bin=function(enc)
 	if(!enc)
 		enc='utf8';
 	return ({
-		'utf8':String.prototype.toUTF8Array,
-		'base64':String.prototype.decodeBase64,
-		'hex':String.prototype.toHexArray
-	}[enc]).apply(this);
+		'utf8':binJS.s2a_utf8,
+		'base64':binJS.s2a_base64,
+		'hex':binJS.s2a_hex
+	}[enc]).call(null,this);
 }
 Uint8Array.prototype.str=function(enc)
 {
 	if(!enc)
 		enc='utf8';
 	return ({
-		'utf8':Uint8Array.prototype.toUTF8String,
-		'base64':Uint8Array.prototype.encodeBase64,
-		'hex':Uint8Array.prototype.toHexString
-	}[enc]).apply(this);
+		'utf8':binJS.a2s_utf8,
+		'base64':binJS.a2s_base64,
+		'hex':binJS.a2s_hex
+	}[enc]).call(null,this);
 }
 
 if(window.sha2){
@@ -43,17 +43,26 @@ if(window.sha2){
 	}
 }
 
-if(Uint8Array.prototype.aes_cbc_zero_enc && Uint8Array.prototype.aes_cbc_zero_dec){
-	Uint8Array.prototype.cipher=function(method,key)
+if(binJS.aes_cbc_enc && binJS.aes_cbc_dec){
+	Uint8Array.prototype.cipher=function(method,key,iv)
 	{
+		
 		return ({
-			'aes_cbc_zero':Uint8Array.prototype.aes_cbc_zero_enc
-		}[method]).apply(this,[key]);
+			'aes_cbc_zero':binJS.aes_cbc_enc,
+			'aes_cbc_pkcs7':binJS.aes_cbc_enc
+		}[method]).apply(null,[this,key,iv,({
+			'aes_cbc_zero':binJS.pad.zero,
+			'aes_cbc_pkcs7':binJS.pad.pkcs7
+		}[method])]);
 	}
-	Uint8Array.prototype.decipher=function(method,key)
+	Uint8Array.prototype.decipher=function(method,key,iv)
 	{
 		return ({
-			'aes_cbc_zero':Uint8Array.prototype.aes_cbc_zero_dec
-		}[method]).apply(this,[key]);
+			'aes_cbc_zero':binJS.aes_cbc_dec,
+			'aes_cbc_pkcs7':binJS.aes_cbc_dec,
+		}[method]).apply(null,[this,key,iv,({
+			'aes_cbc_zero':binJS.pad.zero,
+			'aes_cbc_pkcs7':binJS.pad.pkcs7
+		}[method])]);
 	}
 }

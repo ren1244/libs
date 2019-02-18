@@ -29,12 +29,12 @@ function AES(key)
 	gf_mul[13]="AA0aFzQ5LiNoZXJ/XFFGS9Ddysfk6f7zuLWir4yBlpu7tqGsj4KVmNPeycTn6v3wa2ZxfF9SRUgDDhkUNzotIG1gd3pZVENOBQgfEjE8Kya9sKeqiYSTntXYz8Lh7Pv21tvMweLv+PW+s6SpioeQnQYLHBEyPyglbmN0eVpXQE3a18DN7uP0+bK/qKWGi5yRCgcQHT4zJClib3h1VltMQWFse3ZVWE9CCQQTHj0wJyqxvKumhYifktnUw87t4Pf6t7qtoIOOmZTf0sXI6+bx/GdqfXBTXklEDwIVGDs2ISwMARYbODUiL2RpfnNQXUpH3NHGy+jl8v+0ua6jgI2alw==";
 	gf_mul[14]="AA4cEjg2JCpwfmxiSEZUWuDu/PLY1sTKkJ6MgqimtLrb1cfJ4+3/8ault7mTnY+BOzUnKQMNHxFLRVdZc31vYa2jsb+Vm4mH3dPBz+Xr+fdNQ1FfdXtpZz0zIS8FCxkXdnhqZE5AUlwGCBoUPjAiLJaYioSuoLK85uj69N7QwsxBT11TeXdlazE/LSMJBxUboa+9s5mXhYvR383D6ef1+5qUhoiirL6w6uT2+NLczsB6dGZoQkxeUAoEFhgyPC4g7OLw/tTayMackoCOpKq4tgwCEB40OigmfHJgbkRKWFY3OSslDwETHUdJW1V/cWNt19nLxe/h8/2nqbu1n5GDjQ==";
 	
-	AES.prototype.sbox=sbox.decodeBase64();
+	AES.prototype.sbox=binJS.s2a_base64(sbox);
 	
-	AES.prototype.sbox_r=sbox_r.decodeBase64();
+	AES.prototype.sbox_r=binJS.s2a_base64(sbox_r);
 	var idx;
 	for(idx in gf_mul)
-		gf_mul[idx]=gf_mul[idx].decodeBase64();
+		gf_mul[idx]=binJS.s2a_base64(gf_mul[idx]);
 	AES.prototype.gf_mul=gf_mul;
 })();
 AES.prototype.getRoundKeys=function (key)
