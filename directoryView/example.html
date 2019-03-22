@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>directoryView example</title>
+	<script src="directoryView.js"></script>
+	<style>
+		#dir ul{
+			margin:0em;
+			padding:0em 0em 0em 1.5em;
+		}
+		#dir li{
+			margin:0em;
+			padding:0.2em 0em;
+			list-style:none;
+		}
+		#dir img,#dir span{
+			vertical-align:middle;
+		}
+		.directory{
+			color:gray;
+			cursor:default;
+			
+		}
+		.file{
+			cursor:default;
+		}
+	</style>
+</head>
+<body>
+	<p>重新載入會保留原先的資料夾開啟或關閉狀態</p>
+	<button onclick='run()'>測試重新載入</button>
+	<div id='dir'></div>
+	<script>
+		let dir=[{
+			name:'目錄1',
+			type:'dir',
+			children:[{		
+				name:'目錄3',
+				type:'dir',
+				children:[{
+					name:'3-a',
+					type:'file'
+				},{
+					name:'3-b',
+					type:'file'
+				}]
+			},{
+				name:'1-a',
+				type:'file'
+			}]
+		},{
+			name:'0-a',
+			type:'file'
+		},{
+			name:'目錄2',
+			type:'dir',
+			children:[{
+				name:'2-a',
+				type:'file'
+			},{
+				name:'2-b',
+				type:'file'
+			}]
+		}];
+		document.addEventListener("DOMContentLoaded",function(evt){
+			createDir('dir', dir, show);
+		});
+		function run(){
+			createDir('dir', dir, show);
+		}
+		function show(id){
+			console.log(id);
+		}
+	</script>
+</body>
+</html>
