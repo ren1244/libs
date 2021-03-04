@@ -220,7 +220,7 @@ var sha2=(function(){
 			op=config[type].op;
 		
 		var MLen=u8arr.length;
-		var nByte=((MLen+wordSize*20)>>>wordSizePow+4<<wordSizePow+4); //padding 後的位元組數
+		var nByte=(MLen+wordSize*18>>>wordSizePow+4<<wordSizePow+4); //padding 後的位元組數
 		
 		//padding
 		var M=new ArrayBuffer(nByte);
