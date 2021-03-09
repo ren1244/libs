@@ -208,4 +208,67 @@ const SAO={ //Signature Art Object
         let verified=await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, sign, this._utf8Enc.encode(data));
         return verified;
     },
+
+    aes_256_cbc: {
+        /**
+         * 將 key 轉換為瀏覽器使用的 CryptoKey object
+         * 
+         * @param {ArrayBuffer} key 
+         * @returns {CryptoKey Object}
+         */
+        _importKey: async function(key) {
+            return crypto.subtle.importKey('raw', key, 'AES-CBC', false, ['encrypt', 'decrypt']);
+        },
+
+        /**
+         * 產生初始向量
+         * 
+         * @returns {ArrayBuffer} 初始向量
+         */
+        gatRandomIV() {
+            return crypto.subtle.getRandomValues(new Uint8Array(16)).buffer
+        },
+
+        /**
+         * 用 AES-256-CBC 加密
+         * 
+         * @param {string} data 要被加密的字串
+         * @param {ArrayBuffer} key 密鑰(32byte)
+         * @param {ArrayBuffer} iv 起始向量(16byte)
+         * @param {function|null} ouputFunc 輸出轉換函式
+         * @returns {Promise} 用 ouputFunc 轉換後的結果，如果 ouputFunc 沒指定，則直接回傳 ArrayBuffer
+         */
+        encrypt: async function(data, key, iv, ouputFunc) {
+            data=new TextEncoder().encode(data).buffer;
+            const aes_cbc_params={
+                name: 'AES-CBC',
+                iv: iv
+            };
+            key=await this._importKey(key);
+            let buf=await crypto.subtle.encrypt(aes_cbc_params, key, data);
+            return ouputFunc?ouputFunc(buf):buf;
+        },
+
+        /**
+         * 用 AES-256-CBC 解密
+         * 
+         * @param {ArrayBuffer|string} cipher 要被解密的資料
+         * @param {ArrayBuffer} key 密鑰(32byte)
+         * @param {ArrayBuffer} iv 起始向量(16byte)
+         * @param {function|null} dataConv 輸入轉換函式(字串轉ArrayBuffer)
+         * @returns {Promise} 解碼後的字串
+         */
+        decrypt: async function(cipher, key, iv, dataConv) {
+            if(dataConv) {
+                cipher=dataConv(cipher);
+            }
+            const aes_cbc_params={
+                name: 'AES-CBC',
+                iv: iv
+            };
+            key=await this._importKey(key);
+            let plain=await crypto.subtle.decrypt(aes_cbc_params, key, cipher);
+            return new TextDecoder().decode(plain);
+        },
+    }
 };
