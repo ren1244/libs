@@ -1,4 +1,4 @@
-import * as pako from 'pako';
+import { zlibSync } from 'fflate';
 
 /**
  * PDF Dictionary 物件
@@ -16,21 +16,21 @@ function PdfDict(entries, stream, nocompress) {
 /**
  * 轉成內容
  * 
- * @param {Integer} id 此節點 id
  * @param {Array} queue 待處理（含已處理）block 陣列
  * @returns 此 blobk 內容
  */
-PdfDict.prototype._parsePdfContent = function (id, queue) {
+PdfDict.prototype._parsePdfContent = function (queue) {
     function parseValue(val) {
         if (typeof val === 'string' || typeof val === 'number') {
             return val;
         }
         if (val instanceof PdfDict) {
+            if (val.id !== undefined) {
+                return `${val.id} 0 R`;
+            }
             queue.push(val);
+            val.id = queue.length;
             return `${queue.length} 0 R`;
-        }
-        if (val instanceof PdfDictRef) {
-            return `${val.dict.id} 0 R`;
         }
         if (Array.isArray(val)) {
             let n = val.length;
@@ -40,33 +40,35 @@ PdfDict.prototype._parsePdfContent = function (id, queue) {
             }
             return `[ ${tmp.join(' ')} ]`;
         }
-        if(val instanceof Object && val.constructor === Object) {
+        if (val instanceof Object && val.constructor === Object) {
             let tmp = [];
-            for(let k in val) {
+            for (let k in val) {
                 tmp.push(`/${k} ${parseValue(val[k])}`);
             }
             return `<< ${tmp.join(' ')} >>`;
         }
         throw '未知的類型';
     }
-    if (this.id !== undefined) {
-        throw '重複寫入';
-    }
-    this.id = id;
     if (typeof this.stream === 'string' || this.stream instanceof Uint8Array) {
-        if(!this.nocompress) {
-            this.stream = pako.deflate(this.stream);
+        if (!this.nocompress) {
+            if (typeof this.stream === 'string') {
+                this.stream = new TextEncoder().encode(this.stream);
+            }
+            this.stream = zlibSync(this.stream, { level: 9 });
         }
     }
     if (this.stream instanceof Uint8Array) {
         this.entries.Length = this.stream.byteLength;
-        if(!Array.isArray(this.entries.Filter)) {
+        if (!Array.isArray(this.entries.Filter)) {
             this.entries.Filter = [];
         }
-        this.entries.Filter.push('/FlateDecode')
-    } else if(typeof this.stream === 'string') {
+        if (!this.nocompress) {
+            this.entries.Filter.push('/FlateDecode')
+        }
+    } else if (typeof this.stream === 'string') {
         this.entries.Length = this.stream.length;
     }
+    const id = this.id;
     const entries = this.entries;
     let result = [`${id} 0 obj\n`];
     result.push('<<\n');
@@ -89,20 +91,27 @@ PdfDict.prototype._parsePdfContent = function (id, queue) {
  * 產生 pdf
  * 
  * @param {PdfDict} rootDict Catalog
+ * @param {?PdfDict} infoDict Info
  * @returns {Array} pdf 內容，一個混合 string 跟 Uint8Array 的陣列
  */
-PdfDict.finalize = function (rootDict) {
+PdfDict.finalize = function (rootDict, infoDict) {
     //取得 blocks 
     let blocks;
-    if(Array.isArray(rootDict)) {
+    if (Array.isArray(rootDict)) {
         blocks = rootDict;
         rootDict = blocks[0];
     } else {
         blocks = [rootDict];
     }
+    if (infoDict) {
+        blocks.push(infoDict);
+    }
+    blocks.forEach((dict, idx) => {
+        dict.id = idx + 1;
+    })
     let idx = 0;
     while (idx < blocks.length) {
-        blocks[idx] = blocks[idx]._parsePdfContent(idx + 1, blocks);
+        blocks[idx] = blocks[idx]._parsePdfContent(blocks);
         ++idx;
     }
     //輸出
@@ -111,9 +120,9 @@ PdfDict.finalize = function (rootDict) {
     let pos = output[0].length + 2;
     let posRec = [];
     //寫入 blocks 並紀錄位置
-    blocks.forEach(b=>{
+    blocks.forEach(b => {
         posRec.push(pos);
-        b.forEach(x=>{
+        b.forEach(x => {
             pos += (x instanceof Uint8Array ? x.byteLength : x.length);
             output.push(x);
         });
@@ -123,7 +132,7 @@ PdfDict.finalize = function (rootDict) {
     output.push('xref\n');
     output.push(`0 ${posRec.length + 1}\n`);
     output.push('0000000000 65535 f \n');
-    posRec.forEach(pos=>{
+    posRec.forEach(pos => {
         let s = pos.toString();
         s = '0'.repeat(10 - s.length) + s;
         output.push(`${s} 00000 n \n`);
@@ -132,6 +141,9 @@ PdfDict.finalize = function (rootDict) {
     output.push('<<\n');
     output.push(`/Size ${posRec.length + 1}\n`);
     output.push(`/Root ${rootDict.id} 0 R\n`);
+    if (infoDict) {
+        output.push(`/Info ${infoDict.id} 0 R\n`);
+    }
     output.push('>>\n');
     output.push('startxref\n');
     output.push(`${pos}\n`);
@@ -139,14 +151,4 @@ PdfDict.finalize = function (rootDict) {
     return output;
 }
 
-/**
- * 某 PdfDict 的參照
- * 這只能用在子物件的 entry 需要參照其 parent 時
- * 
- * @param {PdfDict} dict 
- */
-function PdfDictRef(dict) {
-    this.dict = dict;
-}
-
-export { PdfDict, PdfDictRef };
+export default PdfDict;

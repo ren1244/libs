@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>簡易用法</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <iframe class="demo-iframe"></iframe>
+    <script src="../dist/light-pdf.js"></script>
+    <script>
+        const { Pdf, fmtstr } = lightPdf;
+        const pdf = new Pdf();
+        pdf.addPage(210, 297);
+        const [w, h] = pdf.getPageSize();
+        pdf.write(fmtstr('10 {} m 60 {} l 110 {} l s', h - 100, h - 15, h - 100));
+        document.querySelector('.demo-iframe').src = pdf.output('url');
+    </script>
+</body>
+</html>

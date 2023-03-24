@@ -1,0 +1,16 @@
+html, body {
+    height:100%;
+}
+html, body, iframe {
+    margin: 0px;
+    padding: 0px;
+}
+body{
+    display: flex;
+    align-items: stretch;
+}
+iframe{
+    display: block;
+    border: none;
+    flex-grow: 1;
+}

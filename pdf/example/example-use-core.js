@@ -1,4 +1,8 @@
-import { PdfDict, PdfDictRef } from './pdf-core.js';
+/**
+ * 這是直接使用 pdf-core 的範例
+ */
+
+import PdfDict from './pdf-core.js';
 
 //Catalog
 let catalog = new PdfDict({
@@ -17,7 +21,7 @@ catalog.entries.Pages = pageTree; //加到 catalog
 //第一頁
 let page = new PdfDict({
     Type: '/Page',
-    Parent: new PdfDictRef(pageTree),
+    Parent: pageTree,
     Resources: {},
     Contents: [],
     MediaBox: [0, 0, 210 * 72 / 25.4, 297 * 72 / 25.4] //A4 大小
