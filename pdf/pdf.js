@@ -118,4 +118,4 @@ Pdf.prototype.output = function (outputType) {
     }
 }
 
-export { Pdf, fmtstr };
+export { Pdf, PdfDict, fmtstr };
